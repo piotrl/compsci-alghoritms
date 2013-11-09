@@ -1,0 +1,22 @@
+#include <stdio.h>
+
+void Partition() {
+  
+}
+
+int main() {
+  /**
+   * Testowanie roznych danych
+   * ******************************************** 
+   */
+
+  // generowanie liczb
+  // 1) losowych
+  // 2) posortowanych
+  // 3) posortowanych odwrotnie
+
+  
+  
+
+  return 0;
+}
