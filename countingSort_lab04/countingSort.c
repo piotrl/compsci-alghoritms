@@ -10,9 +10,6 @@
 #define DEBUG(var, type) \
   printf(" %i: " #var " == " #type " \n", __LINE__, var)
 
-
-char **A,**B,**TMP;
-
 void drukuj(char **A, int n) {
   // drukuje  drugie litery napisow i napisy  
   int i;
@@ -24,22 +21,28 @@ void drukuj(char **A, int n) {
   }
 }
 
-void czytaj(char **A, int ilosc) {
+void czytaj(char **A, int strSize[], int ilosc) {
   char slowo[MDN];
   int i = 0;
   for(i = 0; i < ilosc; i++) {
     scanf("%s",slowo);
-    A[i] = (char*) malloc(sizeof(char)*MDN);
+    A[i] = (char*) malloc( MDN * sizeof(char) );
     strcpy(A[i], slowo);
+    strSize[i] = strlen(A[i]);
   }
 }
 
-void countingSort(char **input, char **output, int k) {
+
+ int check(char** A, int strLen, int strNum, int charPos){
+   return (charPos <= strLen) ? (int) A[strNum][charPos] : 0;
+ }
+
+void countingSort(char **input, int strSizes[], int sorted_elements, int charPos) {
   // k - najwiekszy element w tablicy input
   
   int i, j;
   char count[MDN+1]; // tablica pomocnicza, zmienia swoja zawartosc po kazdej petli
-
+  char **tmp = (char**) malloc(sorted_elements*sizeof(char*));
   // Zerujemy tablice zliczajaca ilosc powtorzen
   // wszystkich elementow tablicy input
 
@@ -50,8 +53,8 @@ void countingSort(char **input, char **output, int k) {
   // kiedy 'a' wystepuje dwa razy, to:
   // count['a'] == 2 || count[65] == 2
 
-  for(j = 0; j < k; j++) {
-    count[ (int) input[j][0] ] += 1;
+  for(j = 0; j < sorted_elements; j++) {
+    count[ check(input, strSizes[j], j, charPos ) ] += 1;
   }
 
   // count[i] bedzie przechowywac ilosc elementow
@@ -62,24 +65,40 @@ void countingSort(char **input, char **output, int k) {
     // DEBUG( count[i], %i );
   }
   
-  for(j = k-1; j >= 0; j--) {
+  for(j = sorted_elements-1; j >= 0; j--) {
     // T=A; A=B; B=T; // zamiana wskaznikow do tablic
-    output[ (int) count[ (int) input[j][0] ]-1 ] = input[j];
-    count[ (int) input[j][0] ] -= 1;
-    // DEBUG( output[ (int) count[ (int) input[j][0] ] ], %i);
-    // DEBUG( input[j][0], %i);
+    tmp[ (int) count[ check(input, strSizes[j], j, charPos ) ]-1 ] = input[j];
+    count[ check(input, strSizes[j], j, charPos ) ] -= 1;
+    // DEBUG( (int) count[ (int) input[j][charPos] ], %i);
+    // DEBUG( input[j][charPos], %c);
   }
+
+  for(j = sorted_elements-1; j >= 0; j--) {
+    input[j] = tmp[j];
+  } 
+  free(tmp);
 }
 
 int main() {
-  int n=3;
-  A=(char**) malloc(n*sizeof(char*));
-  B=(char**) malloc(n*sizeof(char*));
-  printf("tablica A: \n"); czytaj(A,n); 
+  int i, n=3, max_length;
+  char** A = (char**) malloc(n*sizeof(char*));
+  int strSizes[n];
 
-  countingSort(A, B, n);
+  printf(" tablica A: \n"); czytaj(A, strSizes, n); 
 
-  printf("sorted: \n"); drukuj(B,n);
+  max_length = strSizes[0];
+  for(i = 1; i < n-1; i++) {
+    if(max_length < strSizes[i+1]) 
+      max_length = strSizes[i+1];
+  }
+
+  for(i = max_length-1; i >= 0; i--) {
+    countingSort(A, strSizes, n, i);
+    printf("Pozycja: %i\n", i+1);
+    drukuj(A,n);
+  }
+
+  printf("\n sorted: \n"); drukuj(A,n);
 
   return 0;
 }
