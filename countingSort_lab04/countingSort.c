@@ -1,11 +1,8 @@
-// wskazowka do sortowania pozycyjnego
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
 #define MDN 254 // maks. dlugosc napisu
-#define MN 10 // maks il napisow
-
 
 #define DEBUG(var, type) \
   printf(" %i: " #var " == " #type " \n", __LINE__, var)
@@ -16,7 +13,7 @@ void drukuj(char **A, int n) {
   for (i=0;i<n;i++){
     printf(" %s",A[i]);  
     // printf("%c %s",*(A[i]+1),A[i]);  
-//czyli   printf("%c %s",*(*(A+i)+1),*(A+i));  
+    // czyli printf("%c %s",*(*(A+i)+1),*(A+i));  
     printf("\n");
   }
 }
@@ -32,10 +29,9 @@ void czytaj(char **A, int strSize[], int ilosc) {
   }
 }
 
-
- int check(char** A, int strLen, int strNum, int charPos){
-   return (charPos <= strLen) ? (int) A[strNum][charPos] : 0;
- }
+int check(char** A, int strLen, int strNum, int charPos) {
+  return (charPos <= strLen) ? (int) A[strNum][charPos] : 0;
+}
 
 void countingSort(char **input, int strSizes[], int sorted_elements, int charPos) {
   // k - najwiekszy element w tablicy input
@@ -62,43 +58,54 @@ void countingSort(char **input, int strSizes[], int sorted_elements, int charPos
 
   for(i = 1; i <= MDN; i++) {
     count[i] += count[i-1];
-    // DEBUG( count[i], %i );
   }
   
   for(j = sorted_elements-1; j >= 0; j--) {
     // T=A; A=B; B=T; // zamiana wskaznikow do tablic
-    tmp[ (int) count[ check(input, strSizes[j], j, charPos ) ]-1 ] = input[j];
+    tmp[ count[ check(input, strSizes[j], j, charPos ) ]-1 ] = input[j];
     count[ check(input, strSizes[j], j, charPos ) ] -= 1;
-    // DEBUG( (int) count[ (int) input[j][charPos] ], %i);
-    // DEBUG( input[j][charPos], %c);
   }
+
+  // przypisanie posortowanej tablicy do tablicy wejsciowej
 
   for(j = sorted_elements-1; j >= 0; j--) {
     input[j] = tmp[j];
   } 
+
   free(tmp);
 }
 
-int main() {
-  int i, n=3, max_length;
-  char** A = (char**) malloc(n*sizeof(char*));
-  int strSizes[n];
+void radixSort(char** A, int strSizes[], int n) {
 
-  printf(" tablica A: \n"); czytaj(A, strSizes, n); 
-
-  max_length = strSizes[0];
+  // Get number of the longest string
+  int i,
+      max_length = strSizes[0];
   for(i = 1; i < n-1; i++) {
     if(max_length < strSizes[i+1]) 
       max_length = strSizes[i+1];
   }
 
+  // Alphanumerci sort (from the end)
   for(i = max_length-1; i >= 0; i--) {
     countingSort(A, strSizes, n, i);
+
     printf("Pozycja: %i\n", i+1);
     drukuj(A,n);
   }
+}
 
-  printf("\n sorted: \n"); drukuj(A,n);
+int main() {
+  int strAmount=3;
+  char** A = (char**) malloc(strAmount*sizeof(char*));
+  int strSizes[strAmount];
 
+  printf(" tablica A: \n"); czytaj(A, strSizes, strAmount); 
+
+  radixSort(A, strSizes, strAmount);
+
+
+  printf("\n sorted: \n"); drukuj(A,strAmount);
+
+  putchar('\n');
   return 0;
 }
