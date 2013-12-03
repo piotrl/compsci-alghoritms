@@ -35,6 +35,7 @@ Elem* list_add(Elem* guard, int value) {
 void list_delete(Elem* guard, Elem* element) {
   element->prev->next = element->next;
   element->next->prev = element->prev;
+  free(element);
   guard->val--;
 }
 
@@ -50,7 +51,7 @@ Elem* list_Search(Elem* guard, int x) {
 
 void list_print_all(Elem* guard) {
   Elem* iterator = guard->next;
-  printf(" %i: ", guard->val);  // print number of elements in list
+  printf(" %i elementy: ", guard->val);  // print number of elements in list
 
   while( iterator != guard ) {
     printf("%i ", iterator->val );
@@ -72,24 +73,44 @@ void list_delete_all(Elem* guard) {
   initGuard(guard);   // remove linking guard to empty sectors in memory
 }
 
+void list_merge(Elem* guard1, Elem* guard2) {
+    guard2->next->prev = guard1->prev;
+    guard2->prev->prev = guard1->prev;
+    guard2->prev->next = guard1;
+
+    guard1->prev->next = guard2->next;
+    guard1->prev = guard2->prev;
+
+    guard1->val += guard2->val;
+    free(guard2);
+}
+
 int main() {
   Elem *guard = newElement();
+  Elem *guard2 = newElement();
   Elem *tmp;
 
+  printf("Lista nr 1\n");
   initGuard(guard);
 
-  list_add(guard, 4);  
-  tmp = list_add(guard, 3);  
-  list_add(guard, 5); 
+  list_add(guard, 11);  
+  tmp = list_add(guard, 12);  
+  list_add(guard, 13); 
 
   list_print_all(guard);
-
   list_delete(guard, tmp);
-
   list_print_all(guard);
 
-  list_delete_all(guard);
+  /** guard 2 **/
+  printf("Lista nr 2\n");
+  initGuard(guard2);
 
+  list_add(guard2, 21);
+  list_add(guard2, 22);
+  list_print_all(guard2);
+
+  printf("Scalone listy: \n");
+  list_merge(guard, guard2);
   list_print_all(guard);
   
   putchar('\n');
