@@ -73,7 +73,7 @@ void test_complexity(int A[], int isRandom, int Fn, int alg) {
       Fn = n*log2(n);
 
     Tn=(tp1.tv_sec+tp1.tv_nsec/MLD)-(tp0.tv_sec+tp0.tv_nsec/MLD);
-    printf(" n: %5d \tczas: %3.5lf \twspolczynnik: %3.5lf\n",n,Tn, Fn/Tn);
+    printf(" n: %5d \tczas: %3.5lf \twspolczynnik: %3.5lf\n", n, Tn, Fn/Tn);
   }
 }
 

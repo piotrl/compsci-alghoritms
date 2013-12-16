@@ -46,7 +46,7 @@ void insertSort(int A[], int min, int n) {
 
 void ins_quickSort(int A[], int left, int right) {
   int mid;
-  if ( right-left > 32 ) {
+  if ( right-left > 64 ) {
     mid = partition(A, left, right);
     ins_quickSort(A, left, mid);
     ins_quickSort(A, mid+1, right);
