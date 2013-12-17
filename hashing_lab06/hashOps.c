@@ -25,6 +25,11 @@ Map* newElement() {
 	return (Map*) malloc( sizeof(Map) );
 }
 
+int hashSecondary(int key, int m) {
+	// private api
+  	return key % m;
+}
+
 Map* putNew(char* key, int value) {
 	Map* el = newElement();
 
@@ -32,21 +37,6 @@ Map* putNew(char* key, int value) {
 	strcpy(el->key, key);
 
 	return el;
-}
-
-int hash(int key, int m) {
-	// public api
-  return key % m;
-}
-
-void hashInsert(int* Array, int key) {
-	// public api
-
-}
-
-void hashDelete(int* Array, int key) {
-	// public api
-
 }
 
 int makeKey(char *string) {
@@ -64,18 +54,48 @@ int makeKey(char *string) {
   return stringKey;
 }
 
+int hash(int key, int i, int m) {
+	// public api
+	// m - max length of array
+	// i - iterator
+	return (hashSecondary(key, m) + i*i) % m;
+}
+
+int hashInsert(Map** Array, Map* el, int m) {
+	// public api
+	int hashPosition, i = 0;
+	unsigned int key = makeKey(el->key);
+
+	while( i != m ) {
+		hashPosition = hash(key, i, m);
+		if( Array[hashPosition] == NULL ) {
+			Array[hashPosition] = el;
+			return hashPosition;
+		} 
+		else {
+			i++;
+		}
+	}
+
+	return -1;
+}
+
+void hashDelete(Map** Array, Map* el, int m) {
+	// public api
+
+}
+
 int main() {
-	int i, popularity;
+	int i, popularity, hashIndex;
 	char surrname[MAX_WORD_LENGTH];
 	Map* surrnames[WORDS];
+	Map* tmp;
 
 	for(i = 0; i < WORDS; i++) {
 		scanf("%i %s", &popularity, surrname);
-		surrnames[i] = putNew(surrname, popularity);
-	}
-
-	for(i = 0; i < WORDS; i++) {
-		printf("%i %s\n", surrnames[i]->value, surrnames[i]->key);
+		tmp = putNew(surrname, popularity);
+		hashIndex = hashInsert(surrnames, tmp, WORDS);
+		printf("%i %s\n", surrnames[hashIndex]->value, surrnames[hashIndex]->key);
 	}
 
 	putchar('\n');
