@@ -53,12 +53,11 @@ void testHashArray(int m) {
 int main() {
   int 
     i,
-    m[] = { 1021, 1024, 1777, 2048, 2053, 1321 };
+    m[] = { 1021, 1024, 2048, 1321, 1777, 2670 };
     
   for(i = 0; i < 6; i++) {
     testHashArray(m[i]);
   }
-
   
   putchar('\n');
   return 0;
