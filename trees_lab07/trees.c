@@ -86,28 +86,28 @@ Elem* treeInsert(Elem* Tree, int value)
 	Elem* newEl = newElement();
 	newEl->key = value;
 
-	Elem* newElSuccesor = NULL;
+	Elem* newElParent = NULL;
 	Elem* node = Tree;		// first element of Tree is root
 
 	while (node != NULL)
 	{	// find place for new element 
-		newElSuccesor = node;
+		newElParent = node;
 		node = (newEl->key < node->key) ? node->left : node-> right;
 	}
 
-	newEl->parent = newElSuccesor;
+	newEl->parent = newElParent;
 
-	if (newElSuccesor == NULL)
+	if (newElParent == NULL)
 	{
 		Tree = newEl;	// Tree is empty
 	} 
-	else if (newEl->key < newElSuccesor->key)
+	else if (newEl->key < newElParent->key)
 	{
-		newElSuccesor->left = newEl;
+		newElParent->left = newEl;
 	}
 	else
 	{
-		newElSuccesor->right = newEl;
+		newElParent->right = newEl;
 	}
 
 	return newEl;

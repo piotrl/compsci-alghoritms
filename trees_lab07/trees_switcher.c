@@ -101,12 +101,12 @@ Elem* treeInsert(Elem* Tree, int value)
 	newEl->key = value;
 	newEl->needSwitch = false;
 
-	Elem* newElSuccesor = NULL;
+	Elem* newElParent = NULL;
 	Elem* node = Tree;			// first element of Tree is root
 
 	while (node != NULL)
 	{	// find place for new element 
-		newElSuccesor = node;
+		newElParent = node;
 
 		if (node->key == newEl->key)
 		{
@@ -119,28 +119,28 @@ Elem* treeInsert(Elem* Tree, int value)
 		}
 	}
 
-	newEl->parent = newElSuccesor;
+	newEl->parent = newElParent;
 
-	if (newEl->key == newElSuccesor->key)
+	if (newEl->key == newElParent->key)
 	{
-		if (newElSuccesor->needSwitch == true) 
+		if (newElParent->needSwitch == true) 
 		{
-			newElSuccesor->left = newEl;
+			newElParent->left = newEl;
 		} 
 		else 
 		{
-			newElSuccesor->right = newEl;
+			newElParent->right = newEl;
 		}
 
-		newElSuccesor->needSwitch = !newElSuccesor->needSwitch;
+		newElParent->needSwitch = !newElParent->needSwitch;
 	}
-	else if (newEl->key < newElSuccesor->key)
+	else if (newEl->key < newElParent->key)
 	{
-		newElSuccesor->left = newEl;
+		newElParent->left = newEl;
 	}
 	else
 	{
-		newElSuccesor->right = newEl;
+		newElParent->right = newEl;
 	}
 
 	return newEl;
