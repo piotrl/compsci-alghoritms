@@ -13,47 +13,76 @@
  * @site	piotrl.net
  */
 
+ void lcsPrint(int **b, char *x, int i, int j)
+ {
+ 	if (i == 0 || j == 0)
+ 	{
+ 		return;
+ 	}
+
+ 	if (b[i][j] == 0)
+ 	{
+ 		lcsPrint(b, x, i-1, j-1);
+ 		printf("%c\n", x[i]);
+ 	}
+ }
+
 int main(int argc, char const *argv[])
 {
+	putchar('\n');
+
 	if (argc != 3)
 	{
-		printf("Wymagane jest podanie dwoch argumentow. \n");
-		printf("Wywolanie programu: %s 1111 1101 \n", argv[0]);
+		printf("[ERROR] Wymagane jest podanie dwoch argumentow. \n");
+		printf("[INFO]  Wywolanie programu: %s 1111 1101 \n", argv[0]);
+
+		putchar('\n');
 		return 2;
 	}
 
 	// geting arguments into variables
-	int str1_length = strlen(argv[2]),
-		str2_length = strlen(argv[3]);
+	int str1_length = strlen(argv[1]),
+		str2_length = strlen(argv[2]);
 
 	char str1[str1_length], str2[str2_length];
-	strcpy(str1, argv[2]);
-	strcpy(str2, argv[3]);
+	strcpy(str1, argv[1]);
+	strcpy(str2, argv[2]);
 
 
-	int Array[str1_length][str2_length];
+	int Array[str1_length][str2_length],
+		b[str1_length][str2_length];
 
-	// fill array
-
-	for(int i = 1; i < str1_length; i++)
+	for(int i = 0; i <= str1_length; i++)
 	{
-		for(int j = 1; j < str2_length; j++)
+		for(int j = 0; j <= str2_length; j++)
 		{
 			Array[i][j] = 0;	// reset array
 		}
 	}
 
-	for(int i = 1; i < str1_length; i++)
+	// fill array
+
+	for(int i = 0; i <= str1_length; i++)
 	{
-		for(int j = 1; j < str2_length; j++)
+		for(int j = 0; j <= str2_length; j++)
 		{
-			if (str1[i] == str2[j])
+			if (j != 0 && i != 0)
 			{
-				Array[i][j] = Array[i][j-1]+1;
-			}
-			else
-			{
-				Array[i][j] = Array[i-1][j-1];	
+				if(str1[i] == str2[j])
+				{
+					Array[i][j] = Array[i-1][j-1]+1;
+					b[i][j] = 0;	// up left
+				}
+				else if (Array[i-1][j] >= Array[i][j-1])
+				{
+					Array[i][j] = Array[i-1][j];
+					b[i][j] = 1;	// up
+				}
+				else
+				{
+					Array[i][j] = Array[i][j-1];
+					b[i][j] = 2;	// left
+				}
 			}
 
 			printf("%i ", Array[i][j]);
@@ -61,5 +90,6 @@ int main(int argc, char const *argv[])
 		putchar('\n');
 	}
 
+	putchar('\n');
 	return 0;
 }
