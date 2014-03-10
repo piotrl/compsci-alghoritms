@@ -1,5 +1,5 @@
 /**
- * Finding the longest substring.
+ * Look for the longest substrings and printing all of them.
  * Implemented with dynamic programming method.
  *
  * Program get strings from call parametrs
@@ -11,7 +11,7 @@
 
 #include <stdio.h>	// printf(), putchar()
 #include <string.h>	// strcpy(), strlen()
-#include <assert.h>
+#include <assert.h>	// assert()
 
 #define DEBUG(var, type) \
 	printf(" %i: " #var " == " #type " \n", __LINE__, var)
@@ -20,9 +20,12 @@
 #define UP 1
 #define LEFT 2
 
+int c[100][100],	// for keeping amount of common substrings
+	b[100][100];	// for reconstruction substrings 
+
 void printMatrix(int ilen, int jlen, int matrix[][100], char id)
 {	// ilen - rows
-	// jlen 
+	// jlen - colls
 	printf("\n %c   ", id);
 
 	for (int i = 0; i < jlen; ++i)
@@ -43,9 +46,6 @@ void printMatrix(int ilen, int jlen, int matrix[][100], char id)
 		putchar('\n');
 	}
 }
-
-	int c[100][100],
-		b[100][100];
 
 int lcsLenght(	int ylen, int xlen, // lengths of strings
 				char* y, char* x 	// strings
@@ -97,7 +97,33 @@ void lcsPrint( 	int i, int j, // i == ylen, j == xlen
 	{
 		return;
 	}
+	assert(j >= 0 && i >= 0);
 
+	static int isFirstCall = 1;
+	static int maxlength = 0;
+
+	if (isFirstCall)
+	{	// get length of longest substring (first call of function)
+		isFirstCall = !isFirstCall;
+		maxlength = c[i][j];
+	}
+	assert(isFirstCall != 1);
+
+	// search for other substrings
+	// ------------------------------
+	if (maxlength == c[i-1][j])
+	{
+		lcsPrint(i-1, j, x);
+		printf(" -- ");
+	}
+	else if (maxlength == c[i][j-1])
+	{
+		lcsPrint(i, j-1, x);
+		printf(" -- ");
+	}
+
+	// print longest substring
+	// ------------------------------
 	if (b[i][j] == UPLEFT)			
 	{
 		// printf("UPLEFT \ti == %i, j == %i, b[%i][%i] == %i \n", i, j, i, j, b[i][j]);
@@ -155,12 +181,8 @@ int main(int argc, char const *argv[])
 	printf("-----------------------------------\n");
 
 	printf(" length of longest substring: %i\n", longestSubString);
-	while(xlen >= 0 && c[ylen][xlen] == longestSubString)
-	{
-		lcsPrint(ylen, xlen, x);
-		putchar('\n');
-		xlen--;
-	}
+
+	lcsPrint(ylen, xlen, x);
 	
 	putchar('\n');
 	putchar('\n');
