@@ -19,11 +19,12 @@
 #define UPLEFT 0
 #define UP 1
 #define LEFT 2
+#define MAX_STRLEN 100
 
-int c[100][100],	// for keeping amount of common substrings
-	b[100][100];	// for reconstruction substrings 
+int c[MAX_STRLEN][MAX_STRLEN],	// for keeping amount of common substrings
+	b[MAX_STRLEN][MAX_STRLEN];	// for reconstruction substrings 
 
-void printMatrix(int ilen, int jlen, int matrix[][100], char id)
+void printMatrix(int ilen, int jlen, int matrix[][MAX_STRLEN], char id)
 {	// ilen - rows
 	// jlen - colls
 	printf("\n %c   ", id);
@@ -55,12 +56,12 @@ int lcsLenght(	int ylen, int xlen, // lengths of strings
 	for (int i = 0; i <= ylen; ++i)
 	{
 		c[i][0] = 0;
-		b[i][0] = 8;
+		b[i][0] = 8;	// random, we should never be in b[][0]
 	}
 	for (int i = 0; i <= xlen; ++i)
 	{
 		c[0][i] = 0;
-		b[0][i] = 8;
+		b[0][i] = 8;	// random, we should never be in b[0][]
 	}
 
 	// filling arrays 
@@ -111,33 +112,25 @@ void lcsPrint( 	int i, int j, // i == ylen, j == xlen
 
 	// search for other substrings
 	// ------------------------------
-	if (maxlength == c[i-1][j])
-	{
-		lcsPrint(i-1, j, x);
-		printf(" -- ");
-	}
-	else if (maxlength == c[i][j-1])
+	if (maxlength == c[i][j-1] && b[i][j] != LEFT)
 	{
 		lcsPrint(i, j-1, x);
-		printf(" -- ");
+		printf(" | ");
 	}
 
 	// print longest substring
 	// ------------------------------
 	if (b[i][j] == UPLEFT)			
 	{
-		// printf("UPLEFT \ti == %i, j == %i, b[%i][%i] == %i \n", i, j, i, j, b[i][j]);
 		lcsPrint( i-1, j-1, x);	// go up left
 		printf("%c", x[j-1]);
 	} 
 	else if (b[i][j] == UP) 	
 	{
-		// printf("UP: \ti == %i, j == %i, b[%i][%i] == %i \n", i, j, i, j, b[i][j]);
 		lcsPrint(i-1, j, x);		// go up
 	} 
 	else
 	{
-		// printf("LEFT: \ti == %i, j == %i, b[%i][%i] == %i \n", i, j, i, j, b[i][j]);
 		lcsPrint(i, j-1, x); 	// go left
 	}
 }
@@ -158,6 +151,8 @@ int main(int argc, char const *argv[])
 	// geting arguments into variables
 	int xlen = strlen(argv[1]),
 		ylen = strlen(argv[2]);
+
+	assert(xlen < MAX_STRLEN && ylen < MAX_STRLEN);
 
 	char x[xlen], y[ylen];
 	strcpy(x, argv[1]);
@@ -180,7 +175,7 @@ int main(int argc, char const *argv[])
 	putchar('\n');
 	printf("-----------------------------------\n");
 
-	printf(" length of longest substring: %i\n", longestSubString);
+	printf("\n length of longest substring: %i\n ", longestSubString);
 
 	lcsPrint(ylen, xlen, x);
 	
