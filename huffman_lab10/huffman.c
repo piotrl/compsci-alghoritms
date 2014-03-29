@@ -11,6 +11,7 @@ struct node
 } typedef Elem;
 
 Elem* newElement();
+int cmpEl(Elem* x, Elem* y);
 void transplant(Elem* root, Elem* u, Elem* v);
 
 /**
@@ -34,7 +35,7 @@ void treePrintInOrder(Elem* node)
 	if (node != NULL)
 	{
 		treePrintInOrder(node->left);
-		printf("%i ", node->key);
+		printf("%c: %i ", node->key, node->value);
 		treePrintInOrder(node->right);
 	}
 }
@@ -87,6 +88,41 @@ Elem* treeInsert(Elem* Tree, int value)
 	return newEl;
 }
 
+void sort(int freqlen, Elem* freq[])
+{
+	int i, j;
+	Elem* tmp;
+	for (i = 0; i < freqlen; ++i)
+	{
+		for (j = 1; j < freqlen-i; ++j)
+		{
+			if (cmpEl(freq[j-1], freq[j]) > 0)
+			{
+				tmp = freq[j-1];
+				freq[j-1] = freq[j];
+				freq[j] = tmp;
+			}
+		}
+	}
+}
+
+void hoffman(int len, Elem* Query[])
+{
+	for (int i = 0; i < len; ++i)
+	{
+		Elem* merged = newElement();
+		merged->left = Query[i];
+		merged->right = Query[i+1];
+		merged->value = merged->right->value + merged->left->value;
+		merged->key = 0;
+		
+		Query[i+1] = merged;
+		sort(len-i, Query+i);
+	}
+
+	treePrintInOrder(Query[len-1]);
+}
+
 int main(int argc, char const *argv[])
 {
 
@@ -117,10 +153,9 @@ int main(int argc, char const *argv[])
 		}
 	}
 
-	for (i = 0; i < ls; i++)
-	{
-		printf("%c: %i\n", letters[i]->key, letters[i]->value );
-	}
+	sort(ls, letters);
+
+	hoffman(ls, letters);
 
 	putchar('\n');
 	return 0;
@@ -133,6 +168,10 @@ int main(int argc, char const *argv[])
 Elem* newElement() 
 {
 	return (Elem*) malloc( sizeof(Elem) );
+}
+
+int cmpEl(Elem* x, Elem* y) {
+	return x->value - y->value;
 }
 
 Elem* treeMinimum(Elem* root) {
