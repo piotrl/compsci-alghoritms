@@ -15,7 +15,6 @@ char code[256][8] = {{0}};
 
 Elem* newElement();
 int cmpEl(Elem* x, Elem* y);
-void transplant(Elem* root, Elem* u, Elem* v);
 
 /**
  * public methods - used in main
@@ -46,54 +45,6 @@ void treePrintInOrder(Elem* node)
 		printf("%c: %i ", node->key, node->value);
 		treePrintInOrder(node->right);
 	}
-}
-
-Elem* treeSearch(Elem* node, char value)
-{
-	if (node == NULL || value == node->key)
-	{
-		return node;
-	}
-	else if (value < node->key)
-	{
-		return treeSearch(node->left, value);
-	}
-	else
-	{
-		return treeSearch(node->right, value);
-	}
-}
-
-Elem* treeInsert(Elem* Tree, int value) 
-{
-	Elem* newEl = newElement();
-	newEl->key = value;
-
-	Elem* newElParent = NULL;
-	Elem* node = Tree;		// first element of Tree is root
-
-	while (node != NULL)
-	{	// find place for new element 
-		newElParent = node;
-		node = (newEl->key < node->key) ? node->left : node-> right;
-	}
-
-	newEl->parent = newElParent;
-
-	if (newElParent == NULL)
-	{
-		Tree = newEl;	// Tree is empty
-	} 
-	else if (newEl->key < newElParent->key)
-	{
-		newElParent->left = newEl;
-	}
-	else
-	{
-		newElParent->right = newEl;
-	}
-
-	return newEl;
 }
 
 void sort(int freqlen, Elem* freq[])
@@ -170,8 +121,6 @@ int main(int argc, char const *argv[])
 		if (every_leters[i] != 0)
 			ls++;
 	}
-	printf("d\n");
-
 
 	Elem *letters[ls],
 		 *nodes[ls];
@@ -211,34 +160,4 @@ Elem* newElement()
 
 int cmpEl(Elem* x, Elem* y) {
 	return x->value - y->value;
-}
-
-Elem* treeMinimum(Elem* root) {
-	while(root->right != NULL)
-	{
-		root = root->right;
-	}
-
-	return root;
-}
-
-void transplant(Elem* root, Elem* u, Elem* v)
-{
-	if (u->parent == NULL)
-	{
-		root = v;
-	}
-	else if (u == u->parent->left)
-	{
-		u->parent->left = v;
-	}
-	else
-	{
-		u->parent->right = v;
-	}
-
-	if (v != NULL)
-	{
-		v->parent = u->parent;
-	}
 }
