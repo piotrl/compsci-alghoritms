@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h> // memcpy()
 
 struct node 
 {
@@ -9,6 +10,8 @@ struct node
 	struct node *left;
 	struct node *right;
 } typedef Elem;
+
+char code[256][8] = {{0}};
 
 Elem* newElement();
 int cmpEl(Elem* x, Elem* y);
@@ -30,6 +33,11 @@ Elem* initLeaf(int key, int frequency)
 	return node;
 }
 
+int isLeaf(Elem* node)
+{
+	return node->left == NULL && node->right == NULL;
+}
+
 void treePrintInOrder(Elem* node) 
 {
 	if (node != NULL)
@@ -40,7 +48,7 @@ void treePrintInOrder(Elem* node)
 	}
 }
 
-Elem* treeSearch(Elem* node, int value) 
+Elem* treeSearch(Elem* node, char value)
 {
 	if (node == NULL || value == node->key)
 	{
@@ -106,27 +114,48 @@ void sort(int freqlen, Elem* freq[])
 	}
 }
 
-void hoffman(int len, Elem* Query[])
+Elem* huffman(int len, Elem* Query[])
 {
-	for (int i = 0; i < len; ++i)
+	for (int i = 0; i < len-1; ++i)
 	{
-		Elem* merged = newElement();
-		merged->left = Query[i];
-		merged->right = Query[i+1];
-		merged->value = merged->right->value + merged->left->value;
-		merged->key = 0;
-		
-		Query[i+1] = merged;
+		Elem* root = newElement();
+		root->left = Query[i];
+		root->right = Query[i+1];
+		root->value = root->right->value + root->left->value;
+		root->key = 0;
+
+		Query[i+1] = root;
 		sort(len-i, Query+i);
 	}
+	return Query[len-1];
+}
 
-	treePrintInOrder(Query[len-1]);
+void build_code(Elem* node, char* s, int len)
+{
+		if (isLeaf(node))
+		{
+			s[len] = '\0';
+			strcpy(code[(int) node->key], s);
+			return;
+		}
+
+		s[len] = '1'; build_code(node->left, s, len+1);
+		s[len] = '0'; build_code(node->right, s, len+1);
+}
+
+void printTreeCodes(int ls)
+{
+	printf("Ilosc znakow alfabetu: %i\n", ls);
+	for (int i = 'a'; i <= 'z'; ++i)
+	{
+		printf("%c: %s\n", i, code[i]);
+	}
 }
 
 int main(int argc, char const *argv[])
 {
 
-	int every_leters[255] = {0};
+	int every_leters[256] = {0};
 
 	char c = 0;
 	int i, j, ls = 0;
@@ -136,26 +165,36 @@ int main(int argc, char const *argv[])
 		every_leters[ (int) c]++;
 	}
 
-	for(i = 0; i < 255; i++)
+	for (i = 0; i < 256; i++)
 	{
-		if(every_leters[i] != 0)
+		if (every_leters[i] != 0)
 			ls++;
 	}
+	printf("d\n");
 
-	Elem *letters[ls];
 
-	for(i = 0, j = 0; i < 255 && j < ls; i++)
+	Elem *letters[ls],
+		 *nodes[ls];
+	Elem *tree;
+	char string[8];
+
+	for (i = 0, j = 0; i < 256 && j < ls; i++)
 	{
-		if(every_leters[i] != 0)
+		if (every_leters[i] != 0)
 		{
-
 			letters[j++] = initLeaf(i, every_leters[i]);
 		}
 	}
 
 	sort(ls, letters);
 
-	hoffman(ls, letters);
+	memcpy(&nodes, &letters, sizeof(letters));
+
+	tree = huffman(ls, nodes);
+
+	build_code(tree, string, 0);
+
+	printTreeCodes(ls);
 
 	putchar('\n');
 	return 0;
