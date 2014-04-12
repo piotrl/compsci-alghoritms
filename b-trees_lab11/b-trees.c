@@ -1,14 +1,9 @@
-// struktura wezla B-drzewa i przyklad zapisu i odczytu na plik
-// budowanie B-drzewa o zadanej wysokosci i drukowanie w dwoch
-// wersjch tekstowo i graficznie
-//                                     pmp@inf.ug.edu.pl 2007, 2013
-
 #include <stdio.h>
 #define T 3   // stopien B-drzewa
 
 typedef struct 
 {
-	short n;            //ilosc kluczy (-1 oznacza wezel usuniety)
+	short n;            // ilosc kluczy (-1 oznacza wezel usuniety)
 	short leaf;         // czy lisc
 	int   k[2*T-1];     // klucze
 	int   c[2*T];       // wskazniki do synow (pozycje w pliku: 0,1,2 ...)
@@ -20,8 +15,9 @@ int rozmiarw = sizeof (Node); // rozmiar wezla w bajtach
 FILE *drzewo;  // plik drzewa (zawierajacy wezly)
 
 
-/* -- PRIVATE METHODS --------------------------------------------------------------- */
+/* -- PRIVATE METHODS PROTOTYPES ---------------------------------------------------- */
 
+// operacje dyskowe
 void zapisz   (int i, Node *w); // zapisuje *w jako i-ty zapis w pliku drzewa
 void odczytaj (int i, Node *w); // odczytuje i-ty zapis w pliku drzewa i wpisuje do *w
 void usun     (int i);          // usuwa i-ty zapis w pliku drzewa
@@ -74,15 +70,15 @@ int budujB (int g, int n)
 
 /* ---------------------------------------------------------------------------------- */
 
-void drukujB (int r, int p) 
+void drukujB (int root, int p) 
 {
-	// drukuje B-drzewo o korzeniu r (pozycja w pliku)
+	// drukuje B-drzewo o korzeniu root (pozycja w pliku)
 	// wydruk przesuniety o p w prawo
 
 	Node w;
 	int i, j;
 	
-	odczytaj (r, &w);
+	odczytaj (root, &w);
 
 	if (w.leaf) 
 	{
@@ -110,6 +106,35 @@ void drukujB (int r, int p)
 }
 
 
+/* ---------------------------------------------------------------------------------- */
+
+int bTreeSearch (int root, int key)
+{
+	Node node;
+	int i = 0;
+	
+	odczytaj (root, &node);
+
+	while (i < node.n && key > node.k[i])
+	{
+		i++;
+	}
+
+	if (i < node.n && key == node.k[i])
+	{
+		return root;
+	}
+	
+	if (node.leaf)
+	{
+		return -1;
+	}
+	else
+	{
+		return bTreeSearch(node.c[i], key);
+	}
+}
+
 /* -- MAIN --------------------------------------------------------------------------- */
 
 int main ()
@@ -121,6 +146,16 @@ int main ()
 
 	printf ("\n");
 	drukujB (root, 0);
+
+	printf("\nWezel %i: \n", 14);
+	int n = bTreeSearch(root, 14);
+
+	if (n != -1)
+	{
+		printf ("\n");
+		drukujB (n, 0);
+	}
+	
 	fclose (drzewo);
 
 	putchar('\n');
@@ -130,7 +165,7 @@ int main ()
 
 /* -- PRIVATE METHODS ---------------------------------------------------------------- */
 
-void zapisz (int i,Node *w) 
+void zapisz (int i, Node *w) 
 {
 	// zapisuje *w jako i-ty zapis w pliku drzewa
 
@@ -142,7 +177,7 @@ void zapisz (int i,Node *w)
 
 /* ---------------------------------------------------------------------------------- */
 
-void odczytaj (int i,Node *w) 
+void odczytaj (int i, Node *w) 
 {
 	// odczytuje i-ty zapis w pliku drzewa i wpisuje do *w
 
