@@ -1,10 +1,20 @@
 #include <stdio.h>
-#define T 3   // stopien B-drzewa
+
+#define T 2  // stopien B-drzewa
+
+#define DEBUG(var, type) \
+  printf(" %i: " #var " == " #type " \n", __LINE__, var)
+
+#define DUMP(var) #var
+
+
+/* -- FIELDS ------------------------------------------------------------------------ */
 
 typedef struct 
 {
 	short n;            // ilosc kluczy (-1 oznacza wezel usuniety)
 	short leaf;         // czy lisc
+	int   ownPos;		// position in file
 	int   k[2*T-1];     // klucze
 	int   c[2*T];       // wskazniki do synow (pozycje w pliku: 0,1,2 ...)
 	int   info[2*T-1];  // wskazniki do informacji skojarzonej z kluczem
@@ -12,6 +22,7 @@ typedef struct
 } Node;
 
 int rozmiarw = sizeof (Node); // rozmiar wezla w bajtach
+int __nextFreePos = 0;
 FILE *drzewo;  // plik drzewa (zawierajacy wezly)
 
 
@@ -21,6 +32,11 @@ FILE *drzewo;  // plik drzewa (zawierajacy wezly)
 void zapisz   (int i, Node *w); // zapisuje *w jako i-ty zapis w pliku drzewa
 void odczytaj (int i, Node *w); // odczytuje i-ty zapis w pliku drzewa i wpisuje do *w
 void usun     (int i);          // usuwa i-ty zapis w pliku drzewa
+
+// operacje na drzewie
+void bTreeSplitChild (Node $father, int index, Node $son);
+void bTreeInsertNonFull (Node $x, int k);
+void printFields (Node $x, char *name);
 
 
 /* -- PUBLIC METHODS ---------------------------------------------------------------- */
@@ -32,7 +48,7 @@ int budujB (int g, int n)
 	// zapis w pliku, co jest wazne dla dalszych zapisow do pliku
 	// ktore trzeba robic zaczynajac od kolejnej pozycji
 
-	static int klucz = 0; 	// kolejny klucz
+	static int klucz = 0;   // kolejny klucz
 	static int pozycja = 0; // wolna pozycja w pliku
 	Node w;
 	int i;
@@ -92,12 +108,12 @@ void drukujB (int root, int p)
 	}
 	else 
 	{
-		drukujB (w.c[w.n], p + 4);
+		drukujB (w.c[w.n], p + 4);	// last key in node
 
 		for (i = w.n - 1; i >= 0; i--) 
 		{
 			for (j = 0; j < p; j++)
-				printf (" ");
+				printf (" ");		// shift in right
 			
 			printf ("%d\n", w.k[i]);
 			drukujB (w.c[i], p + 4);
@@ -135,35 +151,222 @@ int bTreeSearch (int root, int key)
 	}
 }
 
+
+/* ----------------------------------------------------------------------------------- */
+
+int bTreeInsert(int rPos, int k)
+{
+	Node root;
+	odczytaj (rPos, &root);
+
+	if (root.n == 2 * T - 1)
+	{	// Node is full, we have to reorganize structure
+		Node s;
+
+		s.leaf = 0;
+		s.n = 0;
+		s.ownPos = __nextFreePos++;
+		s.c[0] = rPos;
+
+		bTreeSplitChild (s, 0, root);
+		bTreeInsertNonFull (s, k);
+		return s.ownPos;
+	}
+	else
+	{	// node is not full, so we just add next element to it
+		bTreeInsertNonFull (root, k);
+	}
+
+	return root.ownPos;
+}
+
+int initRoot()
+{
+	Node root;
+	root.n = 0;
+	root.leaf = 1;
+	root.ownPos = __nextFreePos++;
+
+	for (int i = 0; i < 2*T; i++) 
+	{
+		root.c[i] = -1; // w lisc
+	}
+
+	zapisz(root.ownPos, &root);
+
+	return 0;
+}
+
 /* -- MAIN --------------------------------------------------------------------------- */
 
 int main ()
 {
 	int root;
+	// int find = 3;
 
 	drzewo = fopen ("bdrzewo", "w+");
-	root = budujB (2, 2);
+	root = initRoot();
 
-	printf ("\n");
+	root = bTreeInsert(root, 1);
+	root = bTreeInsert(root, 2);
+	root = bTreeInsert(root, 3);
+	root = bTreeInsert(root, 4);
+	root = bTreeInsert(root, 5);
+	// root = bTreeInsert(root, 6);
+	// root = bTreeInsert(root, 7);
+	// root = bTreeInsert(root, 8);
+	// root = bTreeInsert(root, 9);
+	// root = bTreeInsert(root, 10);
+	// root = bTreeInsert(root, 11);
+	// root = bTreeInsert(root, 12);
+	// root = bTreeInsert(root, 13);
 	drukujB (root, 0);
-
-	printf("\nWezel %i: \n", 14);
-	int n = bTreeSearch(root, 14);
-
-	if (n != -1)
-	{
-		printf ("\n");
-		drukujB (n, 0);
-	}
+	// int n = bTreeSearch(root, find);
 	
-	fclose (drzewo);
+	// if (n != -1)
+	// {
+	// 	printf (" Znaleziono %i w wezle nr %i\n", find, n);
+	// 	drukujB (n, 2);
+	// }
+	// else
+	// {
+	// 	printf(" Nie odnaleziono klucza: %i. \n", find);
+	// }
 
+	printf("\n T = %i\n Max rozmiar wezla: %i\n Min rozmiar wezla: %i", T, 2 * T - 1, T - 1);
+
+	fclose (drzewo);
 	putchar('\n');
 	return 0;
 }
 
 
 /* -- PRIVATE METHODS ---------------------------------------------------------------- */
+
+void bTreeSplitChild (Node $father, int index, Node $son)
+{
+	Node $new; 	// x - father of y, [not full]
+			  	// y - full son of x; y = x.c[index];
+			  	// $new - new additional node, next son of $father
+
+	$new.leaf = $son.leaf; // create sibling in the same node
+	$new.n = T - 1;
+	$new.ownPos = __nextFreePos++;
+
+	for (int i = 0; i < T - 1; ++i)
+	{
+		$new.k[i] = $son.k[i];	// copy right half side of full node
+		$son.k[i] = $son.k[i+T];
+	}
+
+	for (int i = 0; i < T; ++i)
+	{
+		$new.c[i] = $son.c[i];
+		$son.c[i] = $son.c[i+T];
+	}
+
+	// split $son
+	$son.n = T - 1;
+
+	// make space for $new pointer
+	for (int i = $father.n; i >= index; --i) // buggy--
+	{
+		$father.c[i + 1] = $father.c[i];
+	}
+
+	$father.c[index] = $new.ownPos;
+
+	for(int i = $father.n-1; i >= index; i--)
+	{
+		$father.k[i + 1] = $father.k[i];
+	}
+	$father.k[index] = $son.k[T-1];
+	$father.n++;
+
+	// printFields($father, DUMP($father));
+	// printFields($son, DUMP($son));
+	// printFields($new, DUMP($new));
+
+	zapisz ($son.ownPos, &$son);
+	zapisz ($new.ownPos, &$new);
+	zapisz ($father.ownPos, &$father);
+}
+
+
+/* ----------------------------------------------------------------------------------- */
+
+void bTreeInsertNonFull (Node $x, int k)
+{
+	Node tmp;
+
+	int i = $x.n;
+	// DEBUG($xPos, %i);
+
+	if ($x.leaf)
+	{
+		i--;
+		while (i >= 0 && k < $x.k[i])
+		{
+			$x.k[i + 1] = $x.k[i];
+			i--;
+		}
+
+		$x.k[i + 1] = k;
+		$x.n++;
+		zapisz ($x.ownPos, &$x);
+	}
+	else
+	{
+		while (i >= 0 && k < $x.k[i])
+		{
+			i--;
+		}
+		
+		i++;
+		
+		odczytaj($x.c[i], &tmp);
+
+		// printFields(tmp, DUMP(tmp));
+
+		if (tmp.n == 2 * T - 1)
+		{
+			bTreeSplitChild($x, i, tmp);
+
+			if (k > $x.k[i])
+			{
+				odczytaj($x.c[i+1], &tmp);
+			}
+		}
+		bTreeInsertNonFull(tmp, k);
+	}
+}
+
+
+/* ----------------------------------------------------------------------------------- */
+
+void printFields(Node $x, char *name)
+{
+	printf("-------------------------------------\n");
+ 	printf(" %s: n = %i, isLeaf = %i, ownPos = %i \n c = [", name, $x.n, $x.leaf, $x.ownPos);
+	
+	for (int i = 0; i <= $x.n; ++i)
+	{
+		printf("%i, ", $x.c[i]);
+	}
+	
+	printf("];\n k = [");
+
+	for (int i = 0; i < $x.n; ++i)
+	{
+		printf("%i, ", $x.k[i]);	
+	}
+	printf("];\n");
+	printf("-------------------------------------\n");
+}
+
+
+/* ----------------------------------------------------------------------------------- */
+
 
 void zapisz (int i, Node *w) 
 {
