@@ -34,7 +34,7 @@ void odczytaj (int i, Node *w); // odczytuje i-ty zapis w pliku drzewa i wpisuje
 void usun     (int i);          // usuwa i-ty zapis w pliku drzewa
 
 // operacje na drzewie
-void bTreeSplitChild (Node $father, int index, Node $son);
+void bTreeSplitChild (Node $father, int index);
 void bTreeInsertNonFull (Node $x, int k);
 void printFields (Node $x, char *name);
 
@@ -154,10 +154,10 @@ int bTreeSearch (int root, int key)
 
 /* ----------------------------------------------------------------------------------- */
 
-int bTreeInsert(int rPos, int k)
+void bTreeInsert(int *rPos, int k)
 {
 	Node root;
-	odczytaj (rPos, &root);
+	odczytaj (*rPos, &root);
 
 	if (root.n == 2 * T - 1)
 	{	// Node is full, we have to reorganize structure
@@ -166,21 +166,19 @@ int bTreeInsert(int rPos, int k)
 		s.leaf = 0;
 		s.n = 0;
 		s.ownPos = __nextFreePos++;
-		s.c[0] = rPos;
+		s.c[0] = root.ownPos;
+		*rPos = s.ownPos;
 
-		bTreeSplitChild (s, 0, root);
+		bTreeSplitChild (s, 0);
 		bTreeInsertNonFull (s, k);
-		return s.ownPos;
 	}
 	else
 	{	// node is not full, so we just add next element to it
 		bTreeInsertNonFull (root, k);
 	}
-
-	return root.ownPos;
 }
 
-int initRoot()
+int initBTree()
 {
 	Node root;
 	root.n = 0;
@@ -194,44 +192,49 @@ int initRoot()
 
 	zapisz(root.ownPos, &root);
 
-	return 0;
+	return root.ownPos;
 }
 
 /* -- MAIN --------------------------------------------------------------------------- */
 
 int main ()
 {
-	int root;
-	// int find = 3;
+	int *root, root_val;
+	int find = 3;
 
 	drzewo = fopen ("bdrzewo", "w+");
-	root = initRoot();
+	root_val = initBTree();
+	root = &root_val;
 
-	root = bTreeInsert(root, 1);
-	root = bTreeInsert(root, 2);
-	root = bTreeInsert(root, 3);
-	root = bTreeInsert(root, 4);
-	root = bTreeInsert(root, 5);
-	// root = bTreeInsert(root, 6);
-	// root = bTreeInsert(root, 7);
-	// root = bTreeInsert(root, 8);
-	// root = bTreeInsert(root, 9);
-	// root = bTreeInsert(root, 10);
-	// root = bTreeInsert(root, 11);
-	// root = bTreeInsert(root, 12);
-	// root = bTreeInsert(root, 13);
-	drukujB (root, 0);
-	// int n = bTreeSearch(root, find);
+	bTreeInsert(root, 5);
+	bTreeInsert(root, 9);
+	bTreeInsert(root, 3);
+	bTreeInsert(root, 7);
+	bTreeInsert(root, 1);
+	bTreeInsert(root, 2);
+	bTreeInsert(root, 8);
+	bTreeInsert(root, 6);
+	bTreeInsert(root, 10);
+	bTreeInsert(root, 11);
+	bTreeInsert(root, 12);
+	bTreeInsert(root, 13);
+	bTreeInsert(root, 14);
+	bTreeInsert(root, 16);
+	bTreeInsert(root, 17);
+
+	int n = bTreeSearch(*root, find);
 	
-	// if (n != -1)
-	// {
-	// 	printf (" Znaleziono %i w wezle nr %i\n", find, n);
-	// 	drukujB (n, 2);
-	// }
-	// else
-	// {
-	// 	printf(" Nie odnaleziono klucza: %i. \n", find);
-	// }
+	if (n != -1)
+	{
+		printf (" Znaleziono %i w wezle nr %i\n", find, n);
+		drukujB (n, 2);
+	}
+	else
+	{
+		printf(" Nie odnaleziono klucza: %i. \n", find);
+	}
+
+	drukujB (*root, 0);
 
 	printf("\n T = %i\n Max rozmiar wezla: %i\n Min rozmiar wezla: %i", T, 2 * T - 1, T - 1);
 
@@ -243,10 +246,11 @@ int main ()
 
 /* -- PRIVATE METHODS ---------------------------------------------------------------- */
 
-void bTreeSplitChild (Node $father, int index, Node $son)
+void bTreeSplitChild (Node $father, int index)
 {
 	Node $new; 	// x - father of y, [not full]
-			  	// y - full son of x; y = x.c[index];
+	Node $son;
+	odczytaj($father.c[index], &$son);		  	// y - full son of x; y = x.c[index];
 			  	// $new - new additional node, next son of $father
 
 	$new.leaf = $son.leaf; // create sibling in the same node
@@ -258,6 +262,7 @@ void bTreeSplitChild (Node $father, int index, Node $son)
 		$new.k[i] = $son.k[i];	// copy right half side of full node
 		$son.k[i] = $son.k[i+T];
 	}
+
 
 	for (int i = 0; i < T; ++i)
 	{
@@ -275,17 +280,13 @@ void bTreeSplitChild (Node $father, int index, Node $son)
 	}
 
 	$father.c[index] = $new.ownPos;
-
-	for(int i = $father.n-1; i >= index; i--)
+	for (int i = $father.n; i > index; --i)
 	{
 		$father.k[i + 1] = $father.k[i];
 	}
+
 	$father.k[index] = $son.k[T-1];
 	$father.n++;
-
-	// printFields($father, DUMP($father));
-	// printFields($son, DUMP($son));
-	// printFields($new, DUMP($new));
 
 	zapisz ($son.ownPos, &$son);
 	zapisz ($new.ownPos, &$new);
@@ -297,14 +298,10 @@ void bTreeSplitChild (Node $father, int index, Node $son)
 
 void bTreeInsertNonFull (Node $x, int k)
 {
-	Node tmp;
-
-	int i = $x.n;
-	// DEBUG($xPos, %i);
+	int i = $x.n-1;
 
 	if ($x.leaf)
 	{
-		i--;
 		while (i >= 0 && k < $x.k[i])
 		{
 			$x.k[i + 1] = $x.k[i];
@@ -317,27 +314,26 @@ void bTreeInsertNonFull (Node $x, int k)
 	}
 	else
 	{
+
 		while (i >= 0 && k < $x.k[i])
 		{
 			i--;
 		}
 		
 		i++;
-		
-		odczytaj($x.c[i], &tmp);
+		Node $tmp;
+		odczytaj($x.c[i], &$tmp);
 
-		// printFields(tmp, DUMP(tmp));
-
-		if (tmp.n == 2 * T - 1)
+		if ($tmp.n == 2 * T - 1)
 		{
-			bTreeSplitChild($x, i, tmp);
-
-			if (k > $x.k[i])
+			bTreeSplitChild($x, i);
+			if (k > $x.k[i-1])
 			{
-				odczytaj($x.c[i+1], &tmp);
+				odczytaj($x.c[i], &$tmp);
 			}
 		}
-		bTreeInsertNonFull(tmp, k);
+
+		bTreeInsertNonFull($tmp, k);
 	}
 }
 
