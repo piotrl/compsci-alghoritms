@@ -1,6 +1,5 @@
 package net.piotrl;
 
-import javax.sound.midi.Soundbank;
 import java.util.*;
 
 public class Main {
@@ -21,14 +20,12 @@ public class Main {
         edges.add(new int[] {4, 3, 3});
         edges.add(new int[] {4, 1, 2});
         edges.add(new int[] {4, 2, 5});
-        edges.add(new int[] {5, 2, 5});
+        edges.add(new int[] {5, 2, 6});
 
 
         List<int[]> tree = kruskal(edges);
 
-        int i = 0;
         for (int[] ints : tree) {
-            i++;
             System.out.println(ints[0] + " - " + ints[1]);
         }
 
@@ -52,7 +49,7 @@ public class Main {
             Set v = V.get(edge[0]);
             Set u = V.get(edge[1]);
 
-            if (Set.find(u) != Set.find(v) ) {
+            if (Set.find(u) != Set.find(v)) {
                 A.add(edge);
                 u.union(v);
             }
