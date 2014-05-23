@@ -1,10 +1,14 @@
 
+import algorithms.Matcher;
+import algorithms.matcher.KarpRabin;
+import algorithms.matcher.KnuthMorrisPratt;
+import algorithms.matcher.Naive;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 
 public class PatternsTest {
@@ -13,48 +17,43 @@ public class PatternsTest {
     private static final String patternFileName = "patternSample.txt";
 
     public static void main(String[] args) throws IOException {
+        Matcher matcher;
 
-        List<Integer> offsets;
+        String pattern = getText(patternFileName);
+        String textSample = getText(textFileName);
 
-        offsets = naiveStringMatcher(getText(textFileName), getText(patternFileName));
-        System.out.println(offsets);
+        matcher = new Naive(pattern);
+        System.out.println("Naive String Matcher:");
+        printOutput(matcher, textSample);
+
+        matcher = new KarpRabin(pattern);
+        System.out.println("Karp-Rabin Matcher:");
+        printOutput(matcher, textSample);
+
+        matcher = new KnuthMorrisPratt("ABACABAB");
+        System.out.println("Knuth-Morris-Pratt Matcher:");
+        printOutput(matcher, "babaaaaacbabaABACABABabaac");
 
     }
 
-    public static List<Integer> naiveStringMatcher(String text, String pattern) {
-        int n = text.length();
-        int m = pattern.length();
+    private static void printOutput(Matcher matcher, String textSample) {
+        List<Integer> offsets;
+        offsets = matcher.match(textSample);
 
-        List<Integer> offsets = new ArrayList();
-
-        char[] textChars = text.toCharArray();
-        char[] patternChars = pattern.toCharArray();
-
-        for (int offset = 0; offset < n - m; offset++) {
-            int i = 0;
-            while (i < m && textChars[offset + i] == patternChars[i] ) {
-                i++;
-            }
-
-            if (i == m) {
-                // pattern are true
-                offsets.add(offset); // extend result
-            }
-        }
-
-        return offsets;
+        System.out.println(offsets);
+        System.out.println(matcher.getRunTime() + "ms");
     }
 
     private static String getText(String fileName) throws IOException {
         List<String> lines;
         lines = readStrings(fileName);
-        String pattern = "";
+        StringBuilder pattern = new StringBuilder("");
 
         for (String line : lines) {
-            pattern += line;
+            pattern.append(line);
         }
 
-        return pattern;
+        return pattern.toString();
     }
 
     private static List<String> readStrings(String fileName) throws IOException {
