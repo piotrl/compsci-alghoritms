@@ -30,9 +30,9 @@ public class PatternsTest {
         System.out.println("Karp-Rabin Matcher:");
         printOutput(matcher, textSample);
 
-        matcher = new KnuthMorrisPratt("ABACABAB");
+        matcher = new KnuthMorrisPratt(pattern);
         System.out.println("Knuth-Morris-Pratt Matcher:");
-        printOutput(matcher, "babaaaaacbabaABACABABabaac");
+        printOutput(matcher, textSample);
 
     }
 

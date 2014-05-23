@@ -3,6 +3,7 @@ package algorithms.matcher;
 import algorithms.Matcher;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class KnuthMorrisPratt implements Matcher {
@@ -24,23 +25,23 @@ public class KnuthMorrisPratt implements Matcher {
 
         int n = t.length;
         int m = p.length;
-        int q = 0;
+        int b = 0;
 
         int[] prefixes = computePrefixFunction(p);
 
         for (int i = 0; i < n; i++) {
 
-            while (q > 0 && p[q] != t[i-1]) {
-                q = prefixes[q];
+            while (b > 0 && p[b] != t[i]) {
+                b = prefixes[b];
             }
 
-            if (p[q] == t[i]) {
-                q++;
+            if (p[b] == t[i]) {
+                b++;
             }
 
-            if (q == m) {
-                offsets.add(i-m);
-                q = prefixes[q];
+            if (b == m) {
+                offsets.add(i-m+1);
+                b = prefixes[b];
             }
         }
 
@@ -65,27 +66,26 @@ public class KnuthMorrisPratt implements Matcher {
 
     private int[] computePrefixFunction(char[] pattern) {
         int m = pattern.length;
-        int k = 0;
 
-        int[] prefixes = new int[m];
-        prefixes[0] = 0;
+        int[] prefixes = new int[m+1];
+        prefixes[0] = -1;
+        int b = -1;
 
-        for (int q = 1; q < m; q++) {
-            while (k > 0 && pattern[k+1] != pattern[q]) {
-                k = prefixes[k];
+
+        for (int i = 1; i <= m; i++) {
+            while (b > -1 && pattern[b] != pattern[i-1]) {
+                b = prefixes[b];
             }
 
-            if (pattern[k+1] == pattern[q]) {
-                k++;
-            }
-
-            prefixes[q] = k;
+            prefixes[i] = ++b;
         }
 
-        for (int prefix : prefixes) {
-            System.out.print(prefix + ", ");
-        }
+//        prefixes = Arrays.copyOfRange(prefixes, 1, prefixes.length);
 
+//        for (int prefix : prefixes) {
+//            System.out.print(prefix + ", ");
+//        }
+//        System.out.println();
         return prefixes;
     }
 }
